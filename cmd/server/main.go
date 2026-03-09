@@ -1,1 +1,69 @@
-package server
+package main
+
+import (
+	"fmt"
+	"log"
+	"net"
+	"os"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+)
+
+func main() {
+	// Env
+	_ = godotenv.Load() // не fatal — в Docker envs приходят через environment
+
+	// Database
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbPort := os.Getenv("DB_PORT")
+	dbDatabase := os.Getenv("DB_DATABASE")
+
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		dbUser,
+		dbPass,
+		dbHost,
+		dbPort,
+		dbDatabase,
+	)
+
+	db, err := sqlx.Connect("pgx", dsn)
+	if err != nil {
+		log.Fatalf("Failed connect to Postgres: %v", err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed PING DB: %v", err)
+	}
+
+	log.Println("Database: Postgresql is connected!")
+
+	// Inicialized DB
+
+	// questionRepo := repository.NewUserRepository(db)
+	// userService := service.NewUserService(userRepo)
+	// userHandler := handler.NewUserHandler(userService)
+
+	// gRPC Server
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil{
+		log.Fatal("Erorr run grpc server!")
+	}
+
+	grpcServer := grpc.NewServer()
+
+	// userv1.RegisterUserServiceServer(grpcServer, userHandler)
+
+	reflection.Register(grpcServer)
+
+	log.Println("gRPC server listening on :50051")
+	grpcServer.Serve(lis)
+
+}

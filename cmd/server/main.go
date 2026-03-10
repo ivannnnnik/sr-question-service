@@ -6,6 +6,11 @@ import (
 	"net"
 	"os"
 
+	"github.com/ivannnnnik/sr-question-service/internal/handler"
+	"github.com/ivannnnnik/sr-question-service/internal/repository"
+	"github.com/ivannnnnik/sr-question-service/internal/service"
+	questionv1 "github.com/ivannnnnik/sr-proto/gen/go/question/v1"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -47,9 +52,9 @@ func main() {
 
 	// Inicialized DB
 
-	// questionRepo := repository.NewUserRepository(db)
-	// userService := service.NewUserService(userRepo)
-	// userHandler := handler.NewUserHandler(userService)
+	questionRepo := repository.NewQuestionRepository(db)
+	questionService := service.NewQuestionService(questionRepo)
+	questionHandler := handler.NewQuestionHandler(questionService)
 
 	// gRPC Server
 	lis, err := net.Listen("tcp", ":50051")
@@ -59,7 +64,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	// userv1.RegisterUserServiceServer(grpcServer, userHandler)
+	questionv1.RegisterQuestionServiceServer(grpcServer, questionHandler)
 
 	reflection.Register(grpcServer)
 

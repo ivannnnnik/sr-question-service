@@ -9,6 +9,8 @@ import (
 
 type questionRepo interface {
 	Create(ctx context.Context, question *model.Question) error
+	GetByID(ctx context.Context, id string) (*model.Question, error)
+	List(ctx context.Context) ([]model.Question, error)
 }
 
 type QuestionService struct{
@@ -37,5 +39,24 @@ func (svc *QuestionService) Create(ctx context.Context, title, category, difficu
 	}
 
 	return &questionModel, nil
+}
+
+func (svc *QuestionService) GetQuestion(ctx context.Context, id string) (*model.Question, error){
+	user, err := svc.repo.GetByID(ctx, id)
+	if err != nil{
+		return nil, err
+	}
+
+	return user, nil
+
+}
+
+func (svc *QuestionService) List(ctx context.Context) ([]model.Question, error){
+	questions, err := svc.repo.List(ctx)
+	if err != nil{
+		return nil, err
+	}
+
+	return questions, nil
 
 }

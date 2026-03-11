@@ -9,6 +9,8 @@ import (
 
 type questionService interface {
     Create(ctx context.Context, title, category, difficulty string) (*model.Question, error)
+	GetQuestion(ctx context.Context, id string) (*model.Question, error)
+	List(ctx context.Context) ([]model.Question, error)
 }
 
 type QuestionHandler struct{
@@ -33,6 +35,34 @@ func (h *QuestionHandler) CreateQuestion(ctx context.Context, req *questionv1.Cr
 
 	return &questionv1.CreateQuestionResponse{
 		Question: questionConv,
+	}, nil
+
+}
+
+func (h *QuestionHandler) GetQuestion(ctx context.Context, req *questionv1.GetQuestionRequest) (*questionv1.GetQuestionResponse, error) {
+	question, err := h.service.GetQuestion(ctx, req.Id)
+	if err != nil{
+		return nil, err
+	}
+
+	questionConv := QuestionToProto(question)
+
+	return &questionv1.GetQuestionResponse{
+		Question: questionConv,
+	}, nil
+
+}
+
+func (h *QuestionHandler) ListQuestions(ctx context.Context, req *questionv1.ListQuestionsRequest) (*questionv1.ListQuestionsResponse, error) {
+	questions, err := h.service.List(ctx)
+	if err != nil{
+		return nil, err
+	}
+
+	questionsConv := QuestionsToProto(questions)
+
+	return &questionv1.ListQuestionsResponse{
+		Questions: questionsConv,
 	}, nil
 
 }

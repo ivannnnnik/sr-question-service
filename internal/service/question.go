@@ -33,7 +33,6 @@ func (svc *QuestionService) Create(ctx context.Context, title, category, difficu
 	}
 	
 	err := svc.repo.Create(ctx, &questionModel)
-
 	if err != nil{
 		return nil, err
 	}
